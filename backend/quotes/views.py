@@ -1,3 +1,5 @@
+from django.core.cache import cache
+
 from django.shortcuts import render
 from decimal import Decimal
 from rest_framework import viewsets
@@ -29,10 +31,18 @@ class QuoteViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=["post"])
     def price(self, request, pk=None):
         quote = self.get_object()
-        factor = PROVINCE_FACTOR.get(quote.applicant.province, Decimal("1.00"))
-        premium = (quote.coverage_amount * BASE_RATE * factor).quantize(Decimal("0.01"))
+        key = f"premium:{quote.pk}:{quote.coverage_amount}"
+
+        cached = cache.get(key)
+        if cached is not None:
+            premium = Decimal(cached)
+        else:
+            factor = PROVINCE_FACTOR.get(quote.applicant.province, Decimal("1.00"))
+            premium = (quote.coverage_amount * BASE_RATE * factor).quantize(Decimal("0.01"))
+            cache.set(key, str(premium), timeout=300)
 
         quote.premium = premium
         quote.save(update_fields=["premium"])
-
-        return Response({"id": quote.pk, "premium": premium})
+        return Response(
+            {"id": quote.pk, "premium": premium, "cache_hit": cached is not None}
+        )
