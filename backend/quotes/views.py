@@ -1,3 +1,38 @@
 from django.shortcuts import render
+from decimal import Decimal
+from rest_framework import viewsets
+from rest_framework.decorators import action
+from rest_framework.response import Response
 
-# Create your views here.
+from .models import Applicant, Quote
+from .serializers import ApplicantSerializer, QuoteSerializer
+
+PROVINCE_FACTOR = {
+    "ON": Decimal("1.10"),
+    "AB": Decimal("0.95"),
+    "BC": Decimal("1.05"),
+    "QC": Decimal("1.00"),
+    "NS": Decimal("0.98"),
+}
+BASE_RATE = Decimal("0.0012")
+
+class ApplicantViewSet(viewsets.ModelViewSet):
+    queryset = Applicant.objects.all()
+    serializer_class = ApplicantSerializer
+
+class QuoteViewSet(viewsets.ModelViewSet):
+    serializer_class = QuoteSerializer
+
+    def get_queryset(self):
+        return Quote.objects.all().order_by("id")
+
+    @action(detail=True, methods=["post"])
+    def price(self, request, pk=None):
+        quote = self.get_object()
+        factor = PROVINCE_FACTOR.get(quote.applicant.province, Decimal("1.00"))
+        premium = (quote.coverage_amount * BASE_RATE * factor).quantize(Decimal("0.01"))
+
+        quote.premium = premium
+        quote.save(update_fields=["premium"])
+
+        return Response({"id": quote.pk, "premium": premium})
