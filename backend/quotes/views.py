@@ -24,7 +24,7 @@ class QuoteViewSet(viewsets.ModelViewSet):
     serializer_class = QuoteSerializer
 
     def get_queryset(self):
-        return Quote.objects.all().order_by("id")
+        return Quote.objects.select_related("applicant").order_by("id")
 
     @action(detail=True, methods=["post"])
     def price(self, request, pk=None):

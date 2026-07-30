@@ -17,7 +17,7 @@ def fifty_quotes(db):
 
 def test_quote_list_query_count(fifty_quotes, django_assert_num_queries):
     client = APIClient()
-    with django_assert_num_queries(51):
+    with django_assert_num_queries(1):
         response = client.get("/api/quotes/")
     assert response.status_code == 200
     assert len(response.json()) == 50
