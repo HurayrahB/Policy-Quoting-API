@@ -1,14 +1,14 @@
 # Policy Quoting API
 
-A small Django REST Framework service for quoting insurance policies, built to practice a Django/DRF stack.
+A small Django REST Framework service for quoting insurance policies, built to practice a Django/Postgres/Redis stack
 
 ## Stack
 
-Django 5, Django REST Framework, SQLite
+Django 5, Django REST Framework, PostgreSQL 16, Redis 7, Docker Compose, GitHub Actions.
 
 ## Status
 
-Working CRUD API. Two models (`Applicant`, `Quote`) with a foreign key relationship, `ModelSerializer` and `ModelViewSet` for each, wired through a DRF `DefaultRouter`, plus a custom action that computes a premium from coverage amount, a base rate, and a province factor.
+Working CRUD API for applicants and quotes, served from Postgres in Docker Compose. Quote pricing runs through a Redis cache with a 5 minute TTL. The list endpoint uses `select_related` on the applicant foreign key, with a `django_assert_num_queries` test pinning the query count. Tests run on every push via GitHub Actions.
 
 ## Endpoints
 
@@ -23,12 +23,15 @@ Working CRUD API. Two models (`Applicant`, `Quote`) with a foreign key relations
 ## Running it
 
 ```bash
-cd backend
-.venv\Scripts\activate
-pip install -r requirements.txt
-python manage.py migrate
-python manage.py seed
-python manage.py runserver
+docker compose up --build
+docker compose exec web python manage.py migrate
+docker compose exec web python manage.py seed
 ```
 
 Browsable API at `http://localhost:8000/api/`. `seed` wipes existing data and creates 50 applicants with one quote each.
+
+## Tests
+
+```bash
+docker compose exec web pytest -q
+```
