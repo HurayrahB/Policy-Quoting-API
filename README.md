@@ -4,11 +4,11 @@ A small Django REST Framework service for quoting insurance policies, built to p
 
 ## Stack
 
-Django 5, Django REST Framework, PostgreSQL 16, Redis 7, Docker Compose, GitHub Actions.
+Django 5, Django REST Framework, PostgreSQL 16, Redis 7, React 19, TypeScript, Redux Toolkit, Vite, Docker Compose, GitHub Actions.
 
 ## Status
 
-Working CRUD API for applicants and quotes, served from Postgres in Docker Compose. Quote pricing runs through a Redis cache with a 5 minute TTL. The list endpoint uses `select_related` on the applicant foreign key, with a `django_assert_num_queries` test pinning the query count. Tests run on every push via GitHub Actions.
+Working CRUD API for applicants and quotes, served from Postgres in Docker Compose. Quote pricing runs through a Redis cache with a 5 minute TTL. The list endpoint uses `select_related` on the applicant foreign key, with a `django_assert_num_queries` test pinning the query count. Tests run on every push via GitHub Actions. A React/Redux frontend is served by a Vite dev server, also containerized.
 
 ## Endpoints
 
@@ -28,7 +28,10 @@ docker compose exec web python manage.py migrate
 docker compose exec web python manage.py seed
 ```
 
-Browsable API at `http://localhost:8000/api/`. `seed` wipes existing data and creates 50 applicants with one quote each.
+- Frontend: `http://localhost:5173`
+- Browsable API: `http://localhost:8000/api/`
+
+`seed` wipes existing data and creates 50 applicants with one quote each.
 
 ## Tests
 
